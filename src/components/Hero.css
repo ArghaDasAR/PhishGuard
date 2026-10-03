@@ -1,0 +1,338 @@
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: calc(var(--nav-height) + 40px);
+  padding-bottom: 80px;
+  overflow: hidden;
+}
+
+/* Subtle grid background */
+.hero__bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border-secondary) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-secondary) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.5;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 100%);
+}
+
+/* Floating particles */
+.hero__particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero__particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--particle-color);
+  animation: float 8s ease-in-out infinite;
+}
+
+.hero__particle--1 { width: 6px; height: 6px; top: 20%; left: 15%; animation-delay: 0s; }
+.hero__particle--2 { width: 4px; height: 4px; top: 30%; right: 25%; animation-delay: -2s; }
+.hero__particle--3 { width: 8px; height: 8px; top: 60%; left: 10%; animation-delay: -4s; }
+.hero__particle--4 { width: 5px; height: 5px; top: 70%; right: 15%; animation-delay: -1s; }
+.hero__particle--5 { width: 3px; height: 3px; top: 45%; left: 50%; animation-delay: -3s; }
+.hero__particle--6 { width: 7px; height: 7px; top: 15%; right: 40%; animation-delay: -5s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-20px) scale(1.1); opacity: 1; }
+}
+
+.hero__container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* Text content */
+.hero__content {
+  max-width: 560px;
+}
+
+.hero__eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-glow);
+  margin-bottom: 24px;
+}
+
+.hero__title {
+  font-size: clamp(42px, 6vw, 72px);
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 1.0;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+.hero__subtitle {
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 36px;
+  max-width: 480px;
+}
+
+.hero__buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hero__btn {
+  padding: 16px 28px;
+  font-size: 15px;
+}
+
+/* Visual side */
+.hero__visual {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+}
+
+/* ── 3D Crystal Sphere & Floating Glass Card (Matches Image 2) ── */
+.hero-sphere-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-sphere-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.95) 0%, rgba(228, 237, 248, 0.6) 70%, rgba(215, 228, 245, 0.4) 100%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 24px 60px -15px var(--glass-shadow), 0 0 0 1px var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .hero-sphere-viewport {
+  background: radial-gradient(circle at 50% 50%, rgba(20, 32, 55, 0.9) 0%, rgba(10, 16, 28, 0.95) 100%);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.hero-sphere-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  mix-blend-mode: multiply;
+  transform: scale(1.02);
+}
+
+[data-theme="dark"] .hero-sphere-video {
+  mix-blend-mode: screen;
+  opacity: 0.92;
+  filter: contrast(1.1) brightness(1.05);
+}
+
+.hero-sphere-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 60% 40%, rgba(74, 120, 176, 0.12) 0%, transparent 60%);
+}
+
+/* ── Floating Glass Panel (Image 2 Card) ── */
+.hero-sphere-panel {
+  position: absolute;
+  right: -20px;
+  bottom: 24px;
+  width: 290px;
+  max-width: 90%;
+  padding: 24px 22px;
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 48px -10px var(--glass-shadow), 0 0 0 1px var(--glass-border);
+  z-index: 4;
+}
+
+.sphere-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sphere-panel__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sphere-panel__title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.sphere-panel__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+}
+
+.sphere-panel__shield-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  box-shadow: 0 4px 14px var(--glass-shadow);
+}
+
+.sphere-panel__shield-icon {
+  color: var(--text-primary);
+}
+
+.sphere-panel__subtitle {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  margin-bottom: 18px;
+}
+
+.sphere-panel__metrics {
+  margin-bottom: 14px;
+}
+
+.sphere-panel__scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.sphere-panel__tier {
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.sphere-panel__tier:hover,
+.sphere-panel__tier--active {
+  color: var(--accent-primary);
+  font-weight: 750;
+}
+
+.sphere-panel__track {
+  position: relative;
+  height: 6px;
+  background: var(--border-primary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.sphere-panel__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b6eb5, #5a8fd4 80%, #76a9ee 100%);
+  border-radius: var(--radius-full);
+}
+
+.sphere-panel__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-secondary);
+}
+
+.sphere-panel__pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--risk-low);
+  box-shadow: 0 0 0 2px var(--risk-low-bg);
+}
+
+.sphere-panel__footer-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .hero__container {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    text-align: center;
+  }
+  .hero__content { max-width: 100%; margin: 0 auto; }
+  .hero__subtitle { margin: 0 auto 36px; }
+  .hero__buttons { justify-content: center; }
+  .hero__visual {
+    justify-content: center;
+    width: 100%;
+  }
+  .hero-sphere-panel {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    margin-top: -50px;
+    width: 90%;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero { padding-top: calc(var(--nav-height) + 24px); }
+  .hero__title { font-size: 38px; }
+  .hero__buttons { flex-direction: column; align-items: stretch; }
+  .hero__btn { justify-content: center; }
+  .hero-sphere-viewport { min-height: 260px; aspect-ratio: 4/3; }
+  .hero-sphere-panel { padding: 18px; margin-top: -30px; }
+}

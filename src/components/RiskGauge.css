@@ -1,0 +1,44 @@
+.risk-gauge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.risk-gauge__svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(0deg);
+}
+
+.risk-gauge__progress {
+  transition: stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.risk-gauge__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.risk-gauge__number {
+  font-size: 48px;
+  font-weight: 250;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.risk-gauge__of {
+  font-size: 16px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+  margin-bottom: 8px;
+}
+
+.risk-gauge__label {
+  font-size: 10px;
+}

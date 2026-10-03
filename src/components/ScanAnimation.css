@@ -1,0 +1,129 @@
+.scan-anim {
+  padding: 40px;
+  text-align: center;
+}
+
+.scan-anim__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.scan-anim__icon {
+  color: var(--accent-primary);
+}
+
+.scan-anim__title {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  color: var(--text-tertiary);
+}
+
+.scan-anim__percent {
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--accent-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.scan-anim__bar-track {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 4px;
+  background: var(--border-primary);
+  border-radius: var(--radius-full);
+  margin: 0 auto 36px;
+  overflow: visible;
+}
+
+.scan-anim__bar-fill {
+  height: 100%;
+  background: var(--accent-primary);
+  border-radius: var(--radius-full);
+  position: relative;
+}
+
+.scan-anim__bar-glow {
+  position: absolute;
+  top: -3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 12px var(--accent-primary);
+  transform: translateX(-50%);
+  transition: left 0.15s linear;
+}
+
+.scan-anim__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.scan-anim__step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  position: relative;
+}
+
+.scan-anim__step--active {
+  background: var(--accent-soft);
+}
+
+.scan-anim__step--done {
+  opacity: 0.6;
+}
+
+.scan-anim__step--pending {
+  opacity: 0.3;
+}
+
+.scan-anim__step-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  min-width: 20px;
+}
+
+.scan-anim__step-icon {
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.scan-anim__step-label {
+  font-size: 14px;
+  font-weight: 460;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.scan-anim__step--active .scan-anim__step-label {
+  color: var(--text-primary);
+  font-weight: 520;
+}
+
+.scan-anim__step-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+}
+
+.scan-anim__step-check {
+  font-size: 14px;
+  color: var(--risk-low);
+  font-weight: 600;
+}

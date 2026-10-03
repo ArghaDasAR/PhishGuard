@@ -1,0 +1,106 @@
+.demo-section__tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.demo-section__tab {
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 520;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.demo-section__tab:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.demo-section__tab--active {
+  background: var(--cta-bg);
+  color: var(--cta-text);
+  border-color: var(--cta-bg);
+}
+
+.demo-section__content {
+  padding: 36px;
+  border-radius: var(--radius-2xl);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.demo-section__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+.demo-section__msg-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--risk-high);
+  margin-bottom: 16px;
+}
+
+.demo-section__msg-body {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 20px;
+  border-radius: var(--radius-md);
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  max-height: 280px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.demo-section__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.demo-section__result-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.demo-section__explanation {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-tertiary);
+  max-width: 320px;
+}
+
+.demo-section__cta-wrap {
+  text-align: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-primary);
+}
+
+@media (max-width: 768px) {
+  .demo-section__inner { grid-template-columns: 1fr; }
+  .demo-section__content { padding: 24px; }
+  .demo-section__result-col { order: -1; }
+}

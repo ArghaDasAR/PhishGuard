@@ -1,0 +1,121 @@
+.accordion__heading {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 16px;
+}
+
+.accordion__item {
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color var(--duration-fast) var(--ease-smooth);
+}
+
+.accordion__item--open {
+  border-color: var(--accent-glow);
+}
+
+.accordion__trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  color: var(--text-primary);
+  transition: background var(--duration-fast) var(--ease-smooth);
+}
+
+.accordion__trigger:hover {
+  background: var(--accent-soft);
+}
+
+.accordion__num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 22px;
+}
+
+.accordion__icon {
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.accordion__trigger-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.accordion__category {
+  display: block;
+  font-size: 14px;
+  font-weight: 580;
+  color: var(--text-primary);
+}
+
+.accordion__signal {
+  display: block;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.accordion__chevron {
+  color: var(--text-muted);
+  transition: transform var(--duration-normal) var(--ease-smooth);
+  flex-shrink: 0;
+}
+
+.accordion__chevron--open {
+  transform: rotate(180deg);
+}
+
+.accordion__content {
+  overflow: hidden;
+}
+
+.accordion__detail {
+  padding: 0 20px 20px 54px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.accordion__detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.accordion__detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.accordion__detail-value {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.accordion__detail-points {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--risk-high);
+}
+
+@media (max-width: 600px) {
+  .accordion__trigger { padding: 12px 14px; gap: 8px; }
+  .accordion__detail { padding: 0 14px 16px 40px; }
+  .accordion__category { font-size: 13px; }
+}

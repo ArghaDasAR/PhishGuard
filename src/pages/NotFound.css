@@ -1,0 +1,32 @@
+.not-found {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.not-found__content {
+  text-align: center;
+  padding: 60px 32px;
+}
+
+.not-found__icon {
+  color: var(--text-muted);
+  margin: 0 auto 24px;
+  opacity: 0.3;
+}
+
+.not-found__code {
+  font-size: 80px;
+  font-weight: 200;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.not-found__text {
+  font-size: 16px;
+  color: var(--text-tertiary);
+  margin-bottom: 32px;
+}

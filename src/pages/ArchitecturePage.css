@@ -1,0 +1,144 @@
+.arch-page {
+  padding-top: calc(var(--nav-height) + 48px);
+  padding-bottom: 80px;
+  min-height: 100vh;
+}
+
+.arch-page__header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.arch-page__section {
+  margin-bottom: 64px;
+}
+
+.arch-page__section-title {
+  font-size: 24px;
+  font-weight: 660;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 28px;
+}
+
+.arch-page__pipeline {
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.arch-page__pipeline-step {
+  padding: 28px;
+  border-radius: var(--radius-xl);
+  position: relative;
+}
+
+.arch-page__step-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.arch-page__step-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 24px;
+}
+
+.arch-page__step-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.arch-page__step-title {
+  font-size: 17px;
+  font-weight: 620;
+  color: var(--text-primary);
+}
+
+.arch-page__step-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  padding-left: 78px;
+}
+
+.arch-page__step-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-left: 78px;
+}
+
+.arch-page__step-detail {
+  font-size: 11px;
+  font-weight: 560;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+}
+
+.arch-page__step-connector {
+  text-align: center;
+  font-size: 20px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  opacity: 0.5;
+}
+
+.arch-page__principles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.arch-page__principle-card {
+  padding: 32px 24px;
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+
+.arch-page__principle-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.arch-page__principle-title {
+  font-size: 16px;
+  font-weight: 640;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.arch-page__principle-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 768px) {
+  .arch-page__principles { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+  .arch-page__step-desc,
+  .arch-page__step-details { padding-left: 0; }
+}

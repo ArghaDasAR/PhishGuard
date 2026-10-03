@@ -1,0 +1,198 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-sticky);
+  padding: 16px 24px;
+  transition: padding var(--duration-normal) var(--ease-smooth);
+}
+
+.navbar--scrolled {
+  padding: 10px 24px;
+}
+
+.navbar__inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  background: var(--nav-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--nav-border);
+  box-shadow: var(--nav-shadow);
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.navbar--scrolled .navbar__inner {
+  padding: 8px 20px;
+  box-shadow: var(--nav-shadow), 0 1px 0 var(--border-secondary);
+}
+
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.navbar__logo-icon {
+  color: var(--accent-primary);
+}
+
+.navbar__logo-text {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.navbar__links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navbar__link {
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 480;
+  color: var(--text-secondary);
+  border-radius: var(--radius-full);
+  transition: all var(--duration-fast) var(--ease-smooth);
+  white-space: nowrap;
+}
+
+.navbar__link:hover {
+  color: var(--text-primary);
+  background: var(--accent-soft);
+}
+
+.navbar__link--active {
+  color: var(--text-primary);
+  font-weight: 560;
+}
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar__theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  background: transparent;
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.navbar__theme-toggle:hover {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+  border-color: var(--accent-primary);
+}
+
+.navbar__cta {
+  padding: 10px 22px;
+  font-size: 13px;
+}
+
+.navbar__cta-arrow {
+  transition: transform var(--duration-fast) var(--ease-smooth);
+}
+
+.navbar__cta:hover .navbar__cta-arrow {
+  transform: translateX(3px);
+}
+
+.navbar__burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  background: transparent;
+  color: var(--text-primary);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.navbar__burger:hover {
+  background: var(--accent-soft);
+}
+
+.navbar__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: var(--z-overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.navbar__mobile-menu {
+  position: fixed;
+  top: 80px;
+  left: 16px;
+  right: 16px;
+  z-index: var(--z-modal);
+  padding: 20px;
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+}
+
+.navbar__mobile-link {
+  display: block;
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 480;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.navbar__mobile-link:hover,
+.navbar__mobile-link--active {
+  color: var(--text-primary);
+  background: var(--accent-soft);
+}
+
+.navbar__mobile-divider {
+  height: 1px;
+  background: var(--border-primary);
+  margin: 12px 0;
+}
+
+.navbar__mobile-cta {
+  display: block;
+  text-align: center;
+  width: 100%;
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .navbar__links { display: none; }
+  .navbar__cta { display: none; }
+  .navbar__burger { display: flex; }
+}
+
+@media (max-width: 480px) {
+  .navbar { padding: 10px 12px; }
+  .navbar__inner { padding: 10px 16px; }
+}

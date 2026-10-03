@@ -1,0 +1,50 @@
+.why-suspicious {
+  padding: 28px;
+  border-radius: var(--radius-xl);
+  background: var(--card-bg);
+  border: 1px solid var(--border-primary);
+}
+
+.why-suspicious__heading {
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+
+.why-suspicious__points {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.why-suspicious__point-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.why-suspicious__score {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 40px;
+}
+
+.why-suspicious__score--high { color: var(--risk-high); }
+.why-suspicious__score--medium { color: var(--risk-medium); }
+.why-suspicious__score--low { color: var(--risk-low); }
+
+.why-suspicious__reason {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.why-suspicious__explanation {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-tertiary);
+  padding-top: 16px;
+  border-top: 1px solid var(--border-primary);
+}
