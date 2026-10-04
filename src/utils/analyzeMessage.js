@@ -1,9 +1,9 @@
 /* Simple analysis engine - extracts signals from message text */
+/* Member 2 URL engine is in src/utils/urlHeuristics.js */
+import { analyzeUrls as heuristicAnalyzeUrls, extractUrlsFromText, detectTechnicalKeywords } from './urlHeuristics.js'
 
-const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`\]]+/gi
-
-const SUSPICIOUS_TLDS = ['.cc', '.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.buzz', '.icu', '.web.app', '.firebaseapp.com', '.pages.dev']
-
+// TYPOSQUAT_BRANDS kept for psychology/impersonation detection used by Member 3
+// URL analysis is now delegated to urlHeuristics.js
 const TYPOSQUAT_BRANDS = [
   { brand: 'netflix', pattern: /netf[li1][li1]x|netf[il1]x/i },
   { brand: 'google', pattern: /g[o0][o0]g[li1]e/i },
@@ -13,7 +13,7 @@ const TYPOSQUAT_BRANDS = [
   { brand: 'microsoft', pattern: /m[i1]cr[o0]s[o0]ft/i },
   { brand: 'facebook', pattern: /f[a@]ceb[o0][o0]k|faceb[o0]k/i },
   { brand: 'instagram', pattern: /[i1]nst[a@]gr[a@]m/i },
-  { brand: 'sbi', pattern: /sb[i1]/i },
+  { brand: 'sbi', pattern: /\bsb[i1]\b/i },
   { brand: 'hdfc', pattern: /hdfc/i },
   { brand: 'icici', pattern: /[i1]c[i1]c[i1]/i },
 ]
@@ -73,8 +73,19 @@ export function analyzeMessage(text) {
     return null
   }
 
-  const urls = extractUrls(text)
-  const urlAnalysis = analyzeUrls(urls)
+  // ── Member 2: URL/domain heuristic engine ──────────────────────────────
+  const urlAnalysis = heuristicAnalyzeUrls(text)
+  const urlResults = urlAnalysis.urlResults
+  // Build legacy-compatible url array (domain, suspicious, reason)
+  const legacyUrls = urlResults.map(r => ({
+    url: r.url,
+    domain: r.domain,
+    suspicious: r.suspicious,
+    typosquatting: r.typosquatting,
+    reason: r.reason,
+  }))
+
+  // ── Member 3: psychology signals (preserved as-is) ─────────────────────
   const urgencySignals = detectPatterns(text, URGENCY_PHRASES)
   const fearSignals = detectPatterns(text, FEAR_PHRASES)
   const authoritySignals = detectPatterns(text, AUTHORITY_PHRASES)
@@ -84,10 +95,10 @@ export function analyzeMessage(text) {
   const badges = []
   let totalScore = 0
 
-  // URL Analysis
-  if (urlAnalysis.some(u => u.suspicious)) {
-    const worst = urlAnalysis.find(u => u.suspicious)
-    let pts = 30
+  // ── URL Analysis (powered by Member 2 engine) ──────────────────────────
+  if (urlResults.some(u => u.suspicious)) {
+    const worst = urlResults.find(u => u.suspicious)
+    const pts = Math.min(35, 20 + Math.round(urlAnalysis.technicalScore * 0.15))
     signals.push({
       category: 'Link Intelligence',
       severity: 'high',
@@ -98,19 +109,26 @@ export function analyzeMessage(text) {
     totalScore += pts
     badges.push('SUSPICIOUS URL')
 
-    if (urlAnalysis.some(u => u.typosquatting)) {
-      pts = 8
+    if (urlAnalysis.hasTyposquatting) {
+      const pts2 = 8
       signals.push({
         category: 'Link Intelligence',
         severity: 'high',
         signal: 'Typosquatting detected',
         detail: `Domain appears to mimic a recognized brand using character substitution.`,
-        points: pts
+        points: pts2
       })
-      totalScore += pts
+      totalScore += pts2
       badges.push('TYPOSQUATTING')
     }
-  } else if (urls.length > 0) {
+
+    if (urlAnalysis.hasRawIp) {
+      badges.push('IP HOST DETECTED')
+    }
+    if (urlAnalysis.hasDangerousFile) {
+      badges.push('DANGEROUS FILE')
+    }
+  } else if (urlAnalysis.urlCount > 0) {
     signals.push({
       category: 'Link Intelligence',
       severity: 'low',
@@ -121,9 +139,9 @@ export function analyzeMessage(text) {
     totalScore += 4
   }
 
-  // Impersonation
+  // ── Impersonation ──────────────────────────────────────────────────────
   const brandMentions = TYPOSQUAT_BRANDS.filter(b => b.pattern.test(text))
-  if (brandMentions.length > 0 && urlAnalysis.some(u => u.suspicious)) {
+  if (brandMentions.length > 0 && urlResults.some(u => u.suspicious)) {
     const pts = 22
     signals.push({
       category: 'Impersonation Detection',
@@ -136,7 +154,7 @@ export function analyzeMessage(text) {
     badges.push('IMPERSONATION')
   }
 
-  // Urgency
+  // ── Urgency (Member 3) ─────────────────────────────────────────────────
   if (urgencySignals.length >= 2) {
     const pts = Math.min(18, 8 + urgencySignals.length * 3)
     signals.push({
@@ -159,7 +177,7 @@ export function analyzeMessage(text) {
     totalScore += 4
   }
 
-  // Fear / Emotional Pressure
+  // ── Fear / Emotional Pressure (Member 3) ───────────────────────────────
   if (fearSignals.length >= 2) {
     const pts = Math.min(14, 6 + fearSignals.length * 3)
     signals.push({
@@ -173,7 +191,7 @@ export function analyzeMessage(text) {
     badges.push('EMOTIONAL PRESSURE')
   }
 
-  // Authority
+  // ── Authority (Member 3) ───────────────────────────────────────────────
   if (authoritySignals.length >= 2) {
     const pts = Math.min(10, 4 + authoritySignals.length * 2)
     signals.push({
@@ -187,7 +205,7 @@ export function analyzeMessage(text) {
     badges.push('FAKE AUTHORITY')
   }
 
-  // Credential Request
+  // ── Credential Request (Member 3) ──────────────────────────────────────
   if (credentialSignals.length >= 1) {
     const pts = Math.min(12, 6 + credentialSignals.length * 3)
     signals.push({
@@ -201,12 +219,12 @@ export function analyzeMessage(text) {
     badges.push('CREDENTIAL REQUEST')
   }
 
-  // Social Engineering composite
+  // ── Social Engineering composite (Member 3) ────────────────────────────
   if (fearSignals.length + authoritySignals.length + urgencySignals.length >= 4) {
     badges.push('SOCIAL ENGINEERING')
   }
 
-  // Ensure minimum analysis
+  // ── Minimum analysis fallback ──────────────────────────────────────────
   if (signals.length === 0) {
     signals.push({
       category: 'Message Analysis',
@@ -219,47 +237,28 @@ export function analyzeMessage(text) {
   }
 
   const score = Math.min(100, totalScore)
-
-  // Generate explanation
   const explanation = generateExplanation(signals, score, badges)
 
   return {
+    // ── Existing UI-compatible fields ──────────────────────────────────
     score,
     riskLevel: getRiskLevel(score),
     signals: signals.sort((a, b) => b.points - a.points),
     badges,
-    urls: urlAnalysis,
+    urls: legacyUrls,
     explanation,
     messageLength: text.length,
+    // ── Member 2 extended fields ───────────────────────────────────────
+    technicalScore: urlAnalysis.technicalScore,
+    technicalIndicators: urlResults.length > 0 ? urlResults[0].indicators : null,
+    matchedBrands: urlAnalysis.matchedBrands,
+    urlCount: urlAnalysis.urlCount,
   }
 }
 
-function extractUrls(text) {
-  const matches = text.match(URL_REGEX) || []
-  return [...new Set(matches)]
-}
-
-function analyzeUrls(urls) {
-  return urls.map(url => {
-    try {
-      const urlObj = new URL(url)
-      const domain = urlObj.hostname
-      const suspicious = SUSPICIOUS_TLDS.some(tld => domain.endsWith(tld))
-      const typosquatting = TYPOSQUAT_BRANDS.some(b => {
-        return b.pattern.test(domain) && !domain.includes(b.brand + '.')
-      })
-
-      let reason = ''
-      if (typosquatting) reason = 'appears to mimic a recognized brand using character substitution or alternate TLD'
-      else if (suspicious) reason = `uses a suspicious TLD commonly associated with phishing campaigns`
-      else reason = 'Domain matches sender context'
-
-      return { url, domain, suspicious: suspicious || typosquatting, typosquatting, reason }
-    } catch {
-      return { url, domain: url, suspicious: true, typosquatting: false, reason: 'Malformed URL' }
-    }
-  })
-}
+// extractUrls is now provided by urlHeuristics.js (extractUrlsFromText)
+// analyzeUrls is now provided by urlHeuristics.js (analyzeUrls)
+// These internal helpers are removed to avoid duplicated logic.
 
 function detectPatterns(text, patterns) {
   return patterns.filter(p => p.test(text))
@@ -304,154 +303,167 @@ function generateExplanation(signals, score, badges) {
   return explanation
 }
 
-/* Dedicated URL & Domain Analysis Engine */
+/* Dedicated URL & Domain Analysis Engine — Member 2 */
 export function analyzeUrlInput(rawInput) {
   if (!rawInput || !rawInput.trim()) return null
 
-  const items = rawInput.split(/[\n,\s]+/).map(s => s.trim()).filter(Boolean)
-  if (items.length === 0) return null
+  // Normalise input: prepend scheme if missing, split on whitespace/newlines
+  const lines = rawInput.split(/[\n\r,]+/).map(s => s.trim()).filter(Boolean)
+  if (lines.length === 0) return null
 
-  const urlResults = []
+  // For each line, ensure it has a scheme so the URL parser can handle it
+  const normalisedInputs = lines.map(item => {
+    if (!/^https?:\/\//i.test(item)) return 'https://' + item
+    return item
+  })
+
+  // ── Member 2: delegate to urlHeuristics engine ─────────────────────────
+  const urlAnalysis = heuristicAnalyzeUrls(normalisedInputs)
+  const urlResults = urlAnalysis.urlResults
+
+  // Build signals and badges from per-URL results
   const signals = []
   const badges = []
   let totalScore = 0
 
-  for (const item of items) {
-    let clean = item
-    if (!/^https?:\/\//i.test(clean)) {
-      clean = 'https://' + clean
+  for (const r of urlResults) {
+    const ind = r.indicators
+
+    if (ind.rawIp) {
+      signals.push({
+        category: 'Host Infrastructure',
+        severity: 'high',
+        signal: 'Direct IP host detected',
+        detail: `Destination "${r.domain}" uses a raw IP address instead of a domain name, commonly used in disposable phishing servers.`,
+        points: 35
+      })
+      totalScore += 35
+      if (!badges.includes('IP HOST DETECTED')) badges.push('IP HOST DETECTED')
     }
 
-    try {
-      const urlObj = new URL(clean)
-      const domain = urlObj.hostname.toLowerCase()
-      const pathname = urlObj.pathname.toLowerCase()
-      const search = urlObj.search.toLowerCase()
-      const isHttp = urlObj.protocol === 'http:'
-
-      let suspicious = false
-      let typosquatting = false
-      const reasons = []
-
-      // 1. IP address hostname check
-      const ipPattern = /^(?:\d{1,3}\.){3}\d{1,3}$/
-      if (ipPattern.test(domain)) {
-        suspicious = true
-        reasons.push('Uses raw numeric IP address instead of domain')
-        signals.push({
-          category: 'Host Infrastructure',
-          severity: 'high',
-          signal: 'Direct IP host detected',
-          detail: `Destination "${domain}" uses a raw IP address instead of a domain name, commonly used in disposable phishing servers.`,
-          points: 35
-        })
-        totalScore += 35
-        badges.push('IP HOST DETECTED')
-      }
-
-      // 2. Suspicious TLD check
-      const matchedTld = SUSPICIOUS_TLDS.find(tld => domain.endsWith(tld))
-      if (matchedTld) {
-        suspicious = true
-        reasons.push(`Uses high-risk TLD (${matchedTld}) with elevated fraud history`)
-        signals.push({
-          category: 'Domain Reputation',
-          severity: 'high',
-          signal: `High-risk TLD (${matchedTld})`,
-          detail: `The top-level domain "${matchedTld}" has an elevated rate of phishing and deceptive campaigns.`,
-          points: 26
-        })
-        totalScore += 26
-        badges.push('SUSPICIOUS TLD')
-      }
-
-      // 3. Typosquatting / Character Substitution check
-      const matchedBrand = TYPOSQUAT_BRANDS.find(b => {
-        return b.pattern.test(domain) && !domain.includes(b.brand + '.')
+    if (ind.userinfoAbuse) {
+      signals.push({
+        category: 'URL Obfuscation',
+        severity: 'high',
+        signal: 'Suspicious @ (userinfo) trick detected',
+        detail: `The URL uses a userinfo prefix (e.g. paypal.com@evil.com) to disguise the real destination as "${r.domain}".`,
+        points: 30
       })
-      if (matchedBrand) {
-        suspicious = true
-        typosquatting = true
-        reasons.push(`Typosquats brand "${matchedBrand.brand}"`)
-        signals.push({
-          category: 'Brand Protection',
-          severity: 'high',
-          signal: `Typosquatting: ${matchedBrand.brand}`,
-          detail: `The domain "${domain}" employs homoglyphs or character substitution targeting "${matchedBrand.brand}".`,
-          points: 34
-        })
-        totalScore += 34
-        badges.push('TYPOSQUATTING')
-      }
+      totalScore += 30
+      if (!badges.includes('URL OBFUSCATION')) badges.push('URL OBFUSCATION')
+    }
 
-      // 4. Deceptive Subdomains (e.g. paypal.com.account-update.xyz)
-      const subBrandMatch = TYPOSQUAT_BRANDS.find(b => domain.includes(b.brand) && !domain.endsWith('.' + b.brand + '.com') && domain !== b.brand + '.com')
-      if (subBrandMatch && !typosquatting) {
-        suspicious = true
-        reasons.push(`Uses deceptive subdomain containing "${subBrandMatch.brand}"`)
-        signals.push({
-          category: 'Domain Structure',
-          severity: 'high',
-          signal: 'Deceptive subdomain structure',
-          detail: `Domain structures brand name "${subBrandMatch.brand}" into a subdomain to deceive victims.`,
-          points: 24
-        })
-        totalScore += 24
-        badges.push('DECEPTIVE SUBDOMAIN')
-      }
-
-      // 5. Credential harvesting path keywords
-      const credKeywords = ['login', 'signin', 'verify', 'account', 'update', 'billing', 'security', 'claim', 'wallet', 'auth', 'confirm', 'kyc', 'banking', 'airdrop']
-      const matchedPath = credKeywords.filter(kw => pathname.includes(kw) || search.includes(kw))
-      if (matchedPath.length > 0) {
-        const pts = Math.min(20, 10 + matchedPath.length * 4)
-        signals.push({
-          category: 'Path Intelligence',
-          severity: suspicious ? 'high' : 'medium',
-          signal: 'Credential harvesting path pattern',
-          detail: `URL path targets sensitive action triggers (${matchedPath.join(', ')}).`,
-          points: pts
-        })
-        totalScore += pts
-        badges.push('CREDENTIAL HARVESTING')
-      }
-
-      // 6. Plain HTTP (Unencrypted)
-      if (isHttp) {
-        signals.push({
-          category: 'Protocol Security',
-          severity: 'medium',
-          signal: 'Unencrypted HTTP protocol',
-          detail: 'URL communicates over unencrypted HTTP, leaving login credentials vulnerable to interception.',
-          points: 12
-        })
-        totalScore += 12
-        badges.push('UNENCRYPTED HTTP')
-      }
-
-      urlResults.push({
-        url: clean,
-        domain,
-        suspicious,
-        typosquatting,
-        reason: reasons.length > 0 ? reasons.join('; ') : 'Domain verified standard structure',
+    if (ind.suspiciousTld) {
+      const tldMsg = r.reasons.find(rs => rs.includes('extension')) || 'Suspicious TLD'
+      signals.push({
+        category: 'Domain Reputation',
+        severity: 'medium',
+        signal: 'High-risk domain extension',
+        detail: tldMsg,
+        points: 18
       })
-    } catch {
-      urlResults.push({
-        url: clean,
-        domain: clean,
-        suspicious: true,
-        typosquatting: false,
-        reason: 'Malformed or unparseable URL syntax',
+      totalScore += 18
+      if (!badges.includes('SUSPICIOUS TLD')) badges.push('SUSPICIOUS TLD')
+    }
+
+    if (ind.typosquatting) {
+      signals.push({
+        category: 'Brand Protection',
+        severity: 'high',
+        signal: `Typosquatting: ${r.matchedBrand || 'unknown brand'}`,
+        detail: `The domain "${r.domain}" employs homoglyphs or character substitution targeting "${r.matchedBrand || 'a known brand'}".`,
+        points: 36
       })
-      totalScore += 20
+      totalScore += 36
+      if (!badges.includes('TYPOSQUATTING')) badges.push('TYPOSQUATTING')
+    }
+
+    if (ind.deceptiveSubdomain) {
+      signals.push({
+        category: 'Domain Structure',
+        severity: 'high',
+        signal: 'Deceptive subdomain structure',
+        detail: `Domain places brand name "${r.matchedBrand || 'a known brand'}" in a subdomain to deceive victims.`,
+        points: 28
+      })
+      totalScore += 28
+      if (!badges.includes('DECEPTIVE SUBDOMAIN')) badges.push('DECEPTIVE SUBDOMAIN')
+    }
+
+    if (ind.dangerousFile) {
+      signals.push({
+        category: 'Malware Distribution',
+        severity: 'high',
+        signal: `Dangerous file extension (${r.dangerousExtension})`,
+        detail: `URL path contains a potentially malicious file type (${r.dangerousExtension}) that may execute code when downloaded.`,
+        points: 35
+      })
+      totalScore += 35
+      if (!badges.includes('DANGEROUS FILE')) badges.push('DANGEROUS FILE')
+    }
+
+    if (ind.suspiciousPath && r.matchedPathKeywords.length > 0) {
+      const kws = r.matchedPathKeywords.slice(0, 4).join(', ')
+      const pts = Math.min(20, 10 + r.matchedPathKeywords.length * 3)
+      signals.push({
+        category: 'Path Intelligence',
+        severity: r.suspicious ? 'high' : 'medium',
+        signal: 'Credential harvesting path pattern',
+        detail: `URL path targets sensitive action triggers (${kws}).`,
+        points: pts
+      })
+      totalScore += pts
+      if (!badges.includes('CREDENTIAL HARVESTING')) badges.push('CREDENTIAL HARVESTING')
+    }
+
+    if (ind.http) {
+      signals.push({
+        category: 'Protocol Security',
+        severity: 'medium',
+        signal: 'Unencrypted HTTP protocol',
+        detail: 'URL communicates over unencrypted HTTP, leaving credentials vulnerable to interception.',
+        points: 12
+      })
+      totalScore += 12
+      if (!badges.includes('UNENCRYPTED HTTP')) badges.push('UNENCRYPTED HTTP')
+    }
+
+    if (ind.punycode) {
+      signals.push({
+        category: 'Domain Obfuscation',
+        severity: 'medium',
+        signal: 'Punycode internationalised domain',
+        detail: 'Domain uses xn-- punycode encoding, commonly used to create Unicode lookalike characters.',
+        points: 22
+      })
+      totalScore += 22
+      if (!badges.includes('PUNYCODE DOMAIN')) badges.push('PUNYCODE DOMAIN')
+    }
+
+    if (ind.suspiciousPort) {
+      signals.push({
+        category: 'Infrastructure',
+        severity: 'medium',
+        signal: `Non-standard port detected`,
+        detail: `URL specifies a non-standard port which is atypical for legitimate web services.`,
+        points: 10
+      })
+      totalScore += 10
+      if (!badges.includes('UNUSUAL PORT')) badges.push('UNUSUAL PORT')
+    }
+
+    if (r.suspicious && !ind.rawIp && !ind.userinfoAbuse && !ind.typosquatting &&
+        !ind.deceptiveSubdomain && !ind.dangerousFile && !ind.suspiciousTld &&
+        !ind.suspiciousPath && !ind.http && !ind.punycode && !ind.suspiciousPort &&
+        r.reasons.includes('Malformed or unparseable URL syntax')) {
       signals.push({
         category: 'Syntax Analysis',
         severity: 'medium',
         signal: 'Malformed URL format',
-        detail: `The provided string "${clean}" is not a valid standard URL.`,
+        detail: `The provided string "${r.url}" is not a valid standard URL.`,
         points: 20
       })
+      totalScore += 20
     }
   }
 
@@ -466,20 +478,38 @@ export function analyzeUrlInput(rawInput) {
     totalScore += 6
   }
 
-  const score = Math.min(100, totalScore)
+  // Use technicalScore as the authoritative score (capped at 100)
+  const score = Math.min(100, Math.max(totalScore, urlAnalysis.technicalScore))
   const uniqueBadges = [...new Set(badges)]
+
+  // Legacy-compatible url array
+  const legacyUrls = urlResults.map(r => ({
+    url: r.normalizedUrl || r.url,
+    domain: r.domain,
+    suspicious: r.suspicious,
+    typosquatting: r.typosquatting,
+    reason: r.reason,
+  }))
+
+  const highCount = signals.filter(s => s.severity === 'high').length
   const explanation = score > 50
-    ? `URL inspection revealed ${signals.filter(s => s.severity === 'high').length} high-severity risk factors including suspicious host attributes, deceptive brand keywords, or high-risk domain extensions. Navigating to this destination poses severe phishing risks.`
+    ? `URL inspection revealed ${highCount} high-severity risk factor${highCount !== 1 ? 's' : ''} including suspicious host attributes, deceptive brand keywords, or high-risk domain extensions. Navigating to this destination poses severe phishing risks.`
     : `The inspected URL exhibits legitimate structural patterns without known typosquatting or high-risk TLD anomalies. Exercise standard security precautions.`
 
   return {
+    // ── UI-compatible fields ───────────────────────────────────────────
     score,
     riskLevel: getRiskLevel(score),
     signals: signals.sort((a, b) => b.points - a.points),
     badges: uniqueBadges,
-    urls: urlResults,
+    urls: legacyUrls,
     explanation,
-    type: 'url'
+    type: 'url',
+    // ── Member 2 extended fields ───────────────────────────────────────
+    technicalScore: urlAnalysis.technicalScore,
+    technicalIndicators: urlResults.length > 0 ? urlResults[0].indicators : null,
+    matchedBrands: urlAnalysis.matchedBrands,
+    urlCount: urlAnalysis.urlCount,
   }
 }
 

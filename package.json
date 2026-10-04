@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node src/utils/urlHeuristics.test.js"
   },
   "dependencies": {
     "react": "^19.1.0",
