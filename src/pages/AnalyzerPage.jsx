@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { analyzeMessage, analyzeUrlInput, analyzeImageScam } from '../utils/analyzeMessage'
+import { analyzeMessage, analyzeUrlInput, analyzeImageScam, getRiskLevel } from '../utils/analyzeMessage'
+import { analyzeWithGemma, analyzeImageWithGemma } from '../services/gemmaAnalyzer'
+import { mergeThreatScores, mergeImageThreatScores } from '../utils/mergeThreatScores'
 import { demoMessages, demoUrls, demoImages } from '../data/demoMessages'
 import ScanAnimation from '../components/ScanAnimation'
 import RiskGauge from '../components/RiskGauge'
@@ -24,6 +26,8 @@ export default function AnalyzerPage() {
   const [usedDemo, setUsedDemo] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef(null)
+  const pendingAiPromiseRef = useRef(null)
+  const currentScanIdRef = useRef(0)
 
   // Check for demo query param on load
   useEffect(() => {
@@ -100,42 +104,114 @@ export default function AnalyzerPage() {
     if (mode === 'text' && !inputText.trim()) return
     if (mode === 'url' && !inputUrl.trim()) return
     if (mode === 'image' && !imagePreview) return
-    setState('scanning')
-  }, [mode, inputText, inputUrl, imagePreview])
 
-  const handleScanComplete = useCallback(() => {
+    currentScanIdRef.current++
+    setState('scanning')
+
+    // Launch async AI request in background for text and user-uploaded images
+    if (mode === 'text') {
+      const isDemo = usedDemo && inputText === usedDemo.text
+      if (!isDemo) {
+        pendingAiPromiseRef.current = analyzeWithGemma(inputText)
+      } else {
+        pendingAiPromiseRef.current = Promise.resolve(null)
+      }
+    } else if (mode === 'image') {
+      const isDemoSvg = demoImages.some(d => d.svgData === imagePreview)
+      if (!isDemoSvg) {
+        pendingAiPromiseRef.current = analyzeImageWithGemma(imagePreview)
+      } else {
+        pendingAiPromiseRef.current = Promise.resolve(null)
+      }
+    } else {
+      pendingAiPromiseRef.current = Promise.resolve(null)
+    }
+  }, [mode, inputText, inputUrl, imagePreview, usedDemo])
+
+  const handleScanComplete = useCallback(async () => {
+    const scanId = currentScanIdRef.current
+    let aiResponse = null
+
+    try {
+      if (pendingAiPromiseRef.current) {
+        aiResponse = await pendingAiPromiseRef.current
+      }
+    } catch {
+      aiResponse = { success: false, aiAvailable: false, error: 'AI analysis unavailable' }
+    }
+
+    // Ignore if user initiated another scan or reset while awaiting
+    if (scanId !== currentScanIdRef.current) return
+
     if (mode === 'text') {
       if (usedDemo && inputText === usedDemo.text) {
         setResult({
           score: usedDemo.expectedScore,
-          riskLevel: {
-            level: usedDemo.expectedScore > 75 ? 'CRITICAL' : usedDemo.expectedScore > 50 ? 'HIGH' : usedDemo.expectedScore > 25 ? 'MEDIUM' : 'LOW',
-            label: usedDemo.expectedScore > 75 ? 'CRITICAL RISK' : usedDemo.expectedScore > 50 ? 'HIGH RISK' : usedDemo.expectedScore > 25 ? 'MEDIUM RISK' : 'LOW RISK',
-            color: usedDemo.expectedScore > 75 ? 'critical' : usedDemo.expectedScore > 50 ? 'high' : usedDemo.expectedScore > 25 ? 'medium' : 'low'
-          },
+          riskLevel: getRiskLevel(usedDemo.expectedScore),
           signals: usedDemo.signals,
           badges: usedDemo.badges,
           urls: usedDemo.urls,
           explanation: usedDemo.explanation,
-          type: 'text'
+          type: 'text',
+          technicalScore: usedDemo.expectedScore,
+          aiAvailable: false,
         })
       } else {
-        setResult({ ...analyzeMessage(inputText), type: 'text' })
+        const technicalResult = analyzeMessage(inputText)
+        if (technicalResult) {
+          const merged = mergeThreatScores(technicalResult, aiResponse)
+          setResult({ ...merged, type: 'text' })
+        } else {
+          setResult(null)
+        }
       }
     } else if (mode === 'url') {
+      // URL mode is purely technical analysis (Member 2)
       setResult(analyzeUrlInput(inputUrl))
     } else if (mode === 'image') {
-      setResult(analyzeImageScam({
+      const localResult = analyzeImageScam({
         fileName: imageFileName,
         imagePreview,
-        detectedText: imageDetectedText
-      }))
+        detectedText: imageDetectedText,
+      })
+
+      // Safe debug info (no API key, no image bytes, no user content)
+      if (import.meta.env.DEV) {
+        console.groupCollapsed('[PhishGuard] Image AI Debug')
+        console.log('aiAttempted:', pendingAiPromiseRef.current !== null)
+        console.log('aiSucceeded:', !!(aiResponse?.success && aiResponse?.aiAvailable))
+        console.log('sourceType:', 'image')
+        console.log('model:', aiResponse?.model || 'gemma-4-26b-a4b-it')
+        console.log('imageSent:', !!aiResponse?.imageSent)
+        console.log('aiResponse summary:', aiResponse ? {
+          success: aiResponse.success,
+          aiAvailable: aiResponse.aiAvailable,
+          model: aiResponse.model,
+          socialEngineeringScore: aiResponse.socialEngineeringScore,
+          confidence: aiResponse.confidence,
+          error: aiResponse.error,
+        } : null)
+        console.groupEnd()
+      }
+
+      const merged = mergeImageThreatScores(localResult, aiResponse)
+      setResult({
+        ...merged,
+        imageMeta: {
+          fileName: imageFileName || 'screenshot.png',
+          detectedText: aiResponse?.explanation || imageDetectedText,
+          previewUrl: imagePreview,
+        },
+      })
     }
+
     setState('result')
     setUsedDemo(null)
   }, [mode, inputText, inputUrl, imagePreview, imageFileName, imageDetectedText, usedDemo])
 
   const handleLoadDemo = () => {
+    currentScanIdRef.current++
+    pendingAiPromiseRef.current = null
     if (mode === 'text') {
       const demo = demoMessages[0]
       setInputText(demo.text)
@@ -156,6 +232,8 @@ export default function AnalyzerPage() {
   }
 
   const handleClear = () => {
+    currentScanIdRef.current++
+    pendingAiPromiseRef.current = null
     if (mode === 'text') setInputText('')
     else if (mode === 'url') setInputUrl('')
     else if (mode === 'image') {
@@ -169,6 +247,8 @@ export default function AnalyzerPage() {
   }
 
   const handleModeChange = (newMode) => {
+    currentScanIdRef.current++
+    pendingAiPromiseRef.current = null
     setMode(newMode)
     setState('idle')
     setResult(null)

@@ -265,9 +265,10 @@ function detectPatterns(text, patterns) {
 }
 
 export function getRiskLevel(score) {
-  if (score <= 25) return { level: 'LOW', label: 'LOW RISK', color: 'low' }
-  if (score <= 50) return { level: 'MEDIUM', label: 'MEDIUM RISK', color: 'medium' }
-  if (score <= 75) return { level: 'HIGH', label: 'HIGH RISK', color: 'high' }
+  const s = Math.max(0, Math.min(100, Math.round(score || 0)))
+  if (s <= 29) return { level: 'LOW', label: 'LOW RISK', color: 'low' }
+  if (s <= 59) return { level: 'MEDIUM', label: 'MEDIUM RISK', color: 'medium' }
+  if (s <= 79) return { level: 'HIGH', label: 'HIGH RISK', color: 'high' }
   return { level: 'CRITICAL', label: 'CRITICAL RISK', color: 'critical' }
 }
 
